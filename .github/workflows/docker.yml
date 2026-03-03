@@ -49,6 +49,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            nevi.e2e.reactions_limit=5000
           cache-from: type=gha
           cache-to: type=gha,mode=max
