@@ -59,7 +59,7 @@ export const LIMIT_KEY_BOUNDS: Record<LimitKey, {min: number; max: number}> = {
 	max_message_length: {min: 1, max: 4000},
 	max_pack_expressions: {min: 1, max: 200},
 	max_private_channels_per_user: {min: 1, max: 250},
-	max_reactions_per_message: {min: 0, max: 30},
+	max_reactions_per_message: {min: 0, max: 5000},
 	max_relationships: {min: 0, max: 1000},
 	max_users_per_message_reaction: {min: 1, max: 5000},
 	max_voice_message_duration: {min: 1, max: 1200},

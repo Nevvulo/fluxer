@@ -277,6 +277,7 @@ function createAppServerInitializer(context: ServiceInitializationContext): Serv
 
 	const publicUrlHost = new URL(requireValue(config.endpoints.app, 'endpoints.app')).origin;
 	const mediaUrlHost = new URL(requireValue(config.endpoints.media, 'endpoints.media')).origin;
+	const staticCdnHost = new URL(requireValue(config.endpoints.static_cdn, 'endpoints.static_cdn')).origin;
 
 	const appServer = createAppServer({
 		staticDir,
@@ -287,14 +288,12 @@ function createAppServerInitializer(context: ServiceInitializationContext): Serv
 			tracing: telemetry.tracing,
 		},
 		cspDirectives: {
-			defaultSrc: ["'self'"],
-			scriptSrc: ["'self'", "'unsafe-inline'"],
-			styleSrc: ["'self'", "'unsafe-inline'"],
-			imgSrc: ["'self'", 'data:', 'blob:', publicUrlHost, mediaUrlHost],
-			connectSrc: ["'self'", 'wss:', 'ws:', publicUrlHost],
-			fontSrc: ["'self'"],
-			mediaSrc: ["'self'", 'blob:', mediaUrlHost],
-			frameSrc: ["'none'"],
+			scriptSrc: ["'unsafe-inline'", staticCdnHost],
+			styleSrc: [staticCdnHost],
+			imgSrc: [publicUrlHost, mediaUrlHost, staticCdnHost],
+			connectSrc: ['wss:', 'ws:', publicUrlHost, staticCdnHost],
+			fontSrc: [staticCdnHost],
+			mediaSrc: [mediaUrlHost, staticCdnHost],
 		},
 	});
 

@@ -155,7 +155,7 @@ export function createInitializer(config: APIConfig, logger: ILogger): () => Pro
 			}
 		}
 
-		if (!config.dev.testModeEnabled) {
+		{
 			const connectionManager = new NatsConnectionManager({
 				url: config.nats.coreUrl,
 				token: config.nats.authToken,

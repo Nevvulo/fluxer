@@ -19,10 +19,9 @@
 
 import {MODE} from '@app/lib/Env';
 import {Platform} from '@app/lib/Platform';
+import RuntimeConfigStore from '@app/stores/RuntimeConfigStore';
 import {convertToCodePoints} from '@app/utils/EmojiCodepointUtils';
 import type {FC, SVGProps} from 'react';
-
-const TWEMOJI_CDN = 'https://fluxerstatic.com/emoji';
 
 type TwemojiComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -37,7 +36,8 @@ export function getTwemojiURL(codePoints: string): string | null {
 		return null;
 	}
 
-	return `${TWEMOJI_CDN}/${codePoints}.svg`;
+	const cdnBase = RuntimeConfigStore.staticCdnEndpoint || 'https://fluxerstatic.com';
+	return `${cdnBase}/emoji/${codePoints}.svg`;
 }
 
 export function getEmojiURL(unicode: string): string | null {

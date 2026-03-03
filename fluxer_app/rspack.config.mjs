@@ -227,6 +227,11 @@ export default () => {
 	const linguiSwcPlugin = getLinguiSwcPluginConfig();
 	const config = readConfig();
 	const appPublic = resolveAppPublic(config);
+	const domainConfig = getValue(config, ['domain'], {});
+	const overrides = getValue(config, ['endpoint_overrides'], {});
+	const derivedEndpoints = deriveEndpointsFromDomain(domainConfig, overrides);
+	const isSelfHosted = getValue(config, ['instance', 'self_hosted'], false) === true;
+	const resolvedCdnEndpoint = isSelfHosted ? '' : CDN_ENDPOINT;
 	const buildMetadata = resolveBuildMetadata();
 	const publicValues = {
 		PUBLIC_BUILD_SHA: buildMetadata.buildSha,
@@ -250,7 +255,7 @@ export default () => {
 
 		output: {
 			path: DIST_DIR,
-			publicPath: isProduction ? `${CDN_ENDPOINT}/` : '/',
+			publicPath: isSelfHosted ? '/' : (isProduction ? `${CDN_ENDPOINT}/` : '/'),
 			workerPublicPath: '/',
 			filename: (pathData) => {
 				if (pathData.chunk?.name === 'sw') {
@@ -439,7 +444,7 @@ export default () => {
 				],
 			}),
 
-			staticFilesPlugin({staticCdnEndpoint: CDN_ENDPOINT}),
+			staticFilesPlugin({staticCdnEndpoint: resolvedCdnEndpoint}),
 
 			new DefinePlugin({
 				'process.env.NODE_ENV': JSON.stringify(mode),

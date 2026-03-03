@@ -17,6 +17,7 @@
  * along with Fluxer. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import RuntimeConfigStore from '@app/stores/RuntimeConfigStore';
 import {convertToCodePoints} from '@app/utils/EmojiCodepointUtils';
 
 export const EMOJI_CLAP = '\u{1F44F}';
@@ -31,32 +32,25 @@ interface SpriteSheetOptions {
 	retina?: boolean;
 }
 
-interface SpriteSheetVariant {
-	standard: string;
-	retina: string;
-}
-
-const SPRITE_BASE = 'https://fluxerstatic.com/emoji';
 const SPRITE_VERSION = '2';
-
-const buildVersionedSpriteUrl = (fileName: string): string => {
-	const url = new URL(`${SPRITE_BASE}/${fileName}`);
-	url.searchParams.set('v', SPRITE_VERSION);
-	return url.toString();
+const SPRITE_SHEET_NAMES: Record<string, string> = {
+	default: 'spritesheet-emoji',
+	'1f3fb': 'spritesheet-1f3fb',
+	'1f3fc': 'spritesheet-1f3fc',
+	'1f3fd': 'spritesheet-1f3fd',
+	'1f3fe': 'spritesheet-1f3fe',
+	'1f3ff': 'spritesheet-1f3ff',
 };
 
-const buildSpriteSheetVariant = (name: string): SpriteSheetVariant => ({
-	standard: buildVersionedSpriteUrl(`${name}.png`),
-	retina: buildVersionedSpriteUrl(`${name}@2x.png`),
-});
+const getSpriteBase = (): string => {
+	const cdnBase = RuntimeConfigStore.staticCdnEndpoint || 'https://fluxerstatic.com';
+	return `${cdnBase}/emoji`;
+};
 
-const SPRITE_SHEET_RESOURCES: Record<string, SpriteSheetVariant> = {
-	default: buildSpriteSheetVariant('spritesheet-emoji'),
-	'1f3fb': buildSpriteSheetVariant('spritesheet-1f3fb'),
-	'1f3fc': buildSpriteSheetVariant('spritesheet-1f3fc'),
-	'1f3fd': buildSpriteSheetVariant('spritesheet-1f3fd'),
-	'1f3fe': buildSpriteSheetVariant('spritesheet-1f3fe'),
-	'1f3ff': buildSpriteSheetVariant('spritesheet-1f3ff'),
+const buildVersionedSpriteUrl = (fileName: string): string => {
+	const url = new URL(`${getSpriteBase()}/${fileName}`);
+	url.searchParams.set('v', SPRITE_VERSION);
+	return url.toString();
 };
 
 const getSpriteSheetKey = (skinTone?: string): string => {
@@ -64,13 +58,13 @@ const getSpriteSheetKey = (skinTone?: string): string => {
 		return 'default';
 	}
 	const codepoint = convertToCodePoints(skinTone);
-	return SPRITE_SHEET_RESOURCES[codepoint] ? codepoint : 'default';
+	return SPRITE_SHEET_NAMES[codepoint] ? codepoint : 'default';
 };
 
 export const getSpriteSheetPath = (skinTone?: string, options?: SpriteSheetOptions): string => {
 	const key = getSpriteSheetKey(skinTone);
-	const sheet = SPRITE_SHEET_RESOURCES[key];
-	return options?.retina ? sheet.retina : sheet.standard;
+	const name = SPRITE_SHEET_NAMES[key];
+	return buildVersionedSpriteUrl(options?.retina ? `${name}@2x.png` : `${name}.png`);
 };
 
 let supportsImageSetCache: boolean | null = null;
