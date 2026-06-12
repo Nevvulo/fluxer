@@ -598,22 +598,30 @@ schedule_heartbeat_check() ->
 
 -spec check_rate_limit(state(), atom()) -> {ok, state()} | rate_limited.
 check_rate_limit(State = #{rate_limit_state := RateLimitState}, Op) ->
-    Now = erlang:system_time(millisecond),
-    Events = maps:get(events, RateLimitState, []),
-    WindowStart = maps:get(window_start, RateLimitState, Now),
-    EventsInWindow = [T || T <- Events, (Now - T) < ?RATE_LIMIT_WINDOW_MS],
-    case length(EventsInWindow) >= ?RATE_LIMIT_MAX_EVENTS of
-        true ->
-            rate_limited;
+    %% Config-gated (default enabled): test environments disable this so
+    %% forced reconnect/burst scenarios don't close connections with 4008.
+    %% Matches the existing identify_rate_limit_enabled pattern.
+    case fluxer_gateway_env:get(op_rate_limit_enabled) of
         false ->
-            case check_opcode_rate_limit(Op, RateLimitState, Now) of
-                rate_limited ->
+            {ok, State};
+        _ ->
+            Now = erlang:system_time(millisecond),
+            Events = maps:get(events, RateLimitState, []),
+            WindowStart = maps:get(window_start, RateLimitState, Now),
+            EventsInWindow = [T || T <- Events, (Now - T) < ?RATE_LIMIT_WINDOW_MS],
+            case length(EventsInWindow) >= ?RATE_LIMIT_MAX_EVENTS of
+                true ->
                     rate_limited;
-                {ok, OpRateLimitState} ->
-                    NewEvents = [Now | EventsInWindow],
-                    NewRateLimitState =
-                        OpRateLimitState#{events => NewEvents, window_start => WindowStart},
-                    {ok, State#{rate_limit_state => NewRateLimitState}}
+                false ->
+                    case check_opcode_rate_limit(Op, RateLimitState, Now) of
+                        rate_limited ->
+                            rate_limited;
+                        {ok, OpRateLimitState} ->
+                            NewEvents = [Now | EventsInWindow],
+                            NewRateLimitState =
+                                OpRateLimitState#{events => NewEvents, window_start => WindowStart},
+                            {ok, State#{rate_limit_state => NewRateLimitState}}
+                    end
             end
     end.
 

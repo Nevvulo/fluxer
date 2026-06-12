@@ -53,6 +53,10 @@ build_config(Json) ->
         nats_core_url => get_string(Nats, <<"core_url">>, "nats://127.0.0.1:4222"),
         nats_auth_token => get_string(Nats, <<"auth_token">>, ""),
         identify_rate_limit_enabled => get_bool(Service, <<"identify_rate_limit_enabled">>, false),
+        %% Per-connection opcode flood limit (120 events/60s). Keep enabled in
+        %% production; test harnesses disable it so forced reconnect/burst
+        %% scenarios don't close the connection with 4008.
+        op_rate_limit_enabled => get_bool(Service, <<"op_rate_limit_enabled">>, true),
         push_enabled => get_bool(Service, <<"push_enabled">>, true),
         push_user_guild_settings_cache_mb => get_int(
             Service,

@@ -19,6 +19,11 @@
 				"description": "Enable rate limiting for Gateway IDENTIFY opcodes.",
 				"default": false
 			},
+			"op_rate_limit_enabled": {
+				"type": "boolean",
+				"description": "Enable the per-connection opcode rate limit (120 events/60s). Disable only in test environments.",
+				"default": true
+			},
 			"push_enabled": {
 				"type": "boolean",
 				"description": "Enable push notification delivery.",
